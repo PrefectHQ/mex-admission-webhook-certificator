@@ -96,3 +96,56 @@ jobs:
             docker push "us-docker.pkg.dev/${repo}" --all-tags
           done
 
+  scan_webhook_certificator_image_for_vulnerabilities:
+    name: Scan webhook-certificator image for vulnerabilities
+    needs:
+      - get_image_version
+      - build_and_push_webhook_certificator_images
+      - check_if_code_changed
+    if: |
+      (github.event.pull_request.merged == true ||  github.event_name == 'workflow_dispatch') &&
+      needs.check_if_code_changed.outputs.check_webhook_certificator == 'true'
+    runs-on: ubuntu-latest
+    env:
+      SHORT_SHA: ${{ needs.get_image_version.outputs.short_sha }}
+    permissions:
+      # required to read from the repo
+      contents: read
+      # required to obtain Google Cloud service account credentials
+      id-token: write
+      # required to upload CodeQL scan results to GitHub
+      actions: read
+      security-events: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GHA_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: mex-ad-wh-cert-pr-mrg-wf-main@prefect-org-github-actions.iam.gserviceaccount.com
+      - name: Configure Google Cloud credential helper
+        run: gcloud auth configure-docker --quiet us-docker.pkg.dev
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: image
+          image-ref: us-docker.pkg.dev/prefect-dev-cloud2/mex-admission-webhook-certificator/mex-admission-webhook-certificator:${{ env.SHORT_SHA }}
+          ignore-unfixed: true
+          severity: HIGH,CRITICAL
+          scanners: vuln
+          hide-progress: true
+          format: sarif
+          output: trivy-results.sarif
+          timeout: 10m0s
+        env:
+          TRIVY_DB_REPOSITORY: ghcr.io/aquasecurity/trivy-db,public.ecr.aws/aquasecurity/trivy-db
+      - name: Upload Trivy scan results to CodeQL
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-results.sarif
+          # GHA pull_request events pass github_ref = "main" when closed
+          # whereas the code-scanning API expects the full git reference
+          # and `sha` is required by this action if `ref` is provided
+          ref: refs/heads/main
+          sha: ${{ github.sha }}
