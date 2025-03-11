@@ -76,7 +76,7 @@ jobs:
       - name: Build container image
         if: needs.check_if_code_changed.outputs.check_webhook_certificator == 'true'
         run: |
-          docker build  "${{ github.workspace }}" --no-cache -t local-mex-admission-webhook-certificator:${{ env.SHORT_SHA }} .
+          docker build "${{ github.workspace }}" --no-cache -t local-mex-admission-webhook-certificator:${{ env.SHORT_SHA }}
       # otherwise, fetch the :latest image from dev
       - name: Fetch latest token-injector image from dev-mex-aws-token-injector
         if: needs.check_if_code_changed.outputs.check_webhook_certificator == 'false'
