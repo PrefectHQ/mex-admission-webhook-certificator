@@ -1,4 +1,4 @@
-module github.com/ealebed/admission-webhook-certificator
+module github.com/PrefectHQ/mex-admission-webhook-certificator
 
 go 1.23.0
 

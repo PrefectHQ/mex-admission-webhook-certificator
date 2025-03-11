@@ -1,5 +1,5 @@
 /*
-Copyright © 2024 Yevhen Lebid ealebed@gmail.com
+Copyright © 2024 PrefectHQ Platform platform@prefect.io
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/ealebed/admission-webhook-certificator/cmd/version"
+	"github.com/PrefectHQ/mex-admission-webhook-certificator/cmd/version"
 	"github.com/spf13/cobra"
 )
 
