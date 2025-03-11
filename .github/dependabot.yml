@@ -1,8 +1,8 @@
 version: 2
 updates:
-  - package-ecosystem: "gomod"
-    directory: "/"
+  - package-ecosystem: gomod
+    commit-message:
+      prefix: chore
+    directory: /
     schedule:
-      interval: "daily"
-    reviewers:
-    - "ealebed"
+      interval: weekly
